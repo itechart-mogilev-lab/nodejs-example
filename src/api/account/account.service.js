@@ -1,24 +1,33 @@
 const jwt = require("jsonwebtoken");
 const config = require("../../config/environment");
-
-const userMock = require("../../../__mock__/users");
-const users = userMock;
+const User = require("../../models/user.model");
 
 async function authenticate({ username, password }) {
-  const user = users.find(
-    _ => _.username === username && _.password === password
-  );
-  if (user) {
+  try {
+    const user = await User.findOne({ username })
+      .select("+password")
+      .exec();
+    if (user === null) throw "User not found";
+
+    let success = await user.comparePassword(password);
+    if (success === false) throw "";
+
+    const data = user.toObject();
+
     const token = jwt.sign(
-      { sub: user.id, role: user.role },
+      { id: data._id, role: data.role },
       config.jwt.secret,
       { expiresIn: config.jwt.expiration }
     );
-    const { password, ...userWithoutPassword } = user;
+
+    const { password: userPassword, ...userWithoutPassword } = data;
+
     return {
       ...userWithoutPassword,
       token
     };
+  } catch (err) {
+    throw new Error("Username or password is incorrect");
   }
 }
 
@@ -26,7 +35,13 @@ async function logout({ token }) {
   return true;
 }
 
+async function register({ firstname, lastname, username, password }, role) {
+  const user = new User({ firstname, lastname, username, password, role });
+  return user.save().then(({ _id }) => User.findById(_id));
+}
+
 module.exports = {
   authenticate,
-  logout
+  logout,
+  register
 };

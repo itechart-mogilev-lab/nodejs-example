@@ -7,6 +7,8 @@ const Role = require("../../enums/roles.enum");
 
 router.post("/signin", controller.signin);
 router.post("/signout", permit(), controller.signout);
+router.post("/register/user", controller.registerUser);
+router.post("/register/admin", permit(Role.Admin), controller.registerUser)
 
 // Examples
 router.get("/only-admin", permit(Role.Admin), (req, res, next) => {

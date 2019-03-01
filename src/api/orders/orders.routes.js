@@ -1,12 +1,11 @@
 const router = require("express").Router();
+const permit = require("../../middleware/permission");
+const controller = require(`./orders.controller`);
 
-const entity = "orders";
-const controller = require(`./${entity}.controller`);
-
-router.get("/", controller.get);
-router.get("/:id", controller.getById);
-router.post("/", controller.post);
-router.put("/:id", controller.put);
-router.delete("/:id", controller.delete);
+router.get("/", permit(), controller.get);
+router.get("/:id", permit(), controller.getById);
+router.post("/", permit(), controller.post);
+router.put("/:id", permit(), controller.put);
+router.delete("/:id", permit(), controller.delete);
 
 module.exports = router;
